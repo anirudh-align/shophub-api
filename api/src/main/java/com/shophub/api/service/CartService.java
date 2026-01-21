@@ -96,6 +96,35 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional
+    public Cart updateCartItemQuantity(UUID userId, UUID itemId, int quantity) {
+        // Verify cart belongs to user
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + userId));
+
+        CartItem cartItem = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + itemId));
+
+        // Verify item belongs to user's cart
+        if (!cartItem.getCart().getId().equals(cart.getId())) {
+            throw new RuntimeException("Cart item does not belong to user's cart");
+        }
+
+        if (quantity <= 0) {
+            // Remove item if quantity is 0 or less
+            cart.getCartItems().remove(cartItem);
+            cartItemRepository.delete(cartItem);
+        } else {
+            cartItem.setQuantity(quantity);
+            cartItemRepository.save(cartItem);
+        }
+
+        updateCartTotal(cart);
+        cartRepository.save(cart);
+
+        return cart;
+    }
+
     private void updateCartTotal(Cart cart) {
         BigDecimal total = cart.getCartItems().stream()
                 .map(item -> item.getPriceAtTime()

@@ -1,5 +1,6 @@
 package com.shophub.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.shophub.api.model.enums.PaymentMethod;
 import com.shophub.api.model.enums.PaymentStatus;
 import jakarta.persistence.*;
@@ -37,6 +38,7 @@ public class Payment {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JsonIgnore // Prevent circular serialization
     private Order order;
 
     @CreationTimestamp

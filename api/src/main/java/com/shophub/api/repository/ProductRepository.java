@@ -11,6 +11,12 @@ import java.util.UUID;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
-    @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId")
+    @Query("SELECT p FROM Product p JOIN FETCH p.category JOIN FETCH p.inventory WHERE p.category.id = :categoryId")
     List<Product> findByCategoryId(@Param("categoryId") UUID categoryId);
+    
+    @Query("SELECT p FROM Product p JOIN FETCH p.category JOIN FETCH p.inventory")
+    List<Product> findAllWithDetails();
+    
+    @Query("SELECT p FROM Product p JOIN FETCH p.category JOIN FETCH p.inventory WHERE p.id = :id")
+    java.util.Optional<Product> findByIdWithDetails(@Param("id") UUID id);
 }

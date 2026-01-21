@@ -7,7 +7,9 @@ import com.shophub.api.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class InventoryService {
@@ -40,5 +42,32 @@ public class InventoryService {
 
         inventory.setStock(currentStock - quantity);
         inventoryRepository.save(inventory);
+    }
+
+    public List<Inventory> getAllInventory() {
+        return inventoryRepository.findAll();
+    }
+
+    @Transactional
+    public Inventory updateInventory(UUID productId, Inventory inventoryUpdate) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+
+        Inventory inventory = product.getInventory();
+        if (inventory == null) {
+            throw new RuntimeException("Inventory not found for product: " + productId);
+        }
+
+        inventory.setStock(inventoryUpdate.getStock());
+        inventory.setReservedStock(inventoryUpdate.getReservedStock());
+        inventory.setLowStockThreshold(inventoryUpdate.getLowStockThreshold());
+        
+        return inventoryRepository.save(inventory);
+    }
+
+    public List<Inventory> getLowStockItems() {
+        return inventoryRepository.findAll().stream()
+                .filter(inv -> inv.getStock() <= inv.getLowStockThreshold())
+                .collect(Collectors.toList());
     }
 }

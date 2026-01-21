@@ -1,5 +1,6 @@
 package com.shophub.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.shophub.api.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore // Never expose password in API responses
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -38,9 +40,11 @@ public class User {
     private UserRole role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // Prevent circular serialization
     private Cart cart;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // Prevent circular serialization
     private List<Order> orders = new ArrayList<>();
 
     @CreationTimestamp
