@@ -1,5 +1,7 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.BadRequestException;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.Cart;
 import com.shophub.api.model.CartItem;
 import com.shophub.api.model.Product;
@@ -44,14 +46,14 @@ public class CartService {
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
                     newCart.setUser(userRepository.findById(userId)
-                            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId)));
+                            .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId)));
                     newCart.setTotalAmount(BigDecimal.ZERO);
                     return cartRepository.save(newCart);
                 });
 
         // Get product
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
 
         // Check if item already exists in cart
         Optional<CartItem> existingItem = cart.getCartItems().stream()
@@ -85,7 +87,7 @@ public class CartService {
     @Transactional
     public void removeItemFromCart(UUID cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + cartItemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item", "id", cartItemId));
 
         Cart cart = cartItem.getCart();
         cart.getCartItems().remove(cartItem);
@@ -100,14 +102,14 @@ public class CartService {
     public Cart updateCartItemQuantity(UUID userId, UUID itemId, int quantity) {
         // Verify cart belongs to user
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
 
         CartItem cartItem = cartItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item", "id", itemId));
 
         // Verify item belongs to user's cart
         if (!cartItem.getCart().getId().equals(cart.getId())) {
-            throw new RuntimeException("Cart item does not belong to user's cart");
+            throw new BadRequestException("Cart item does not belong to user's cart");
         }
 
         if (quantity <= 0) {

@@ -1,5 +1,7 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.BadRequestException;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.Inventory;
 import com.shophub.api.model.Product;
 import com.shophub.api.repository.InventoryRepository;
@@ -27,16 +29,16 @@ public class InventoryService {
     @Transactional
     public void reduceStock(UUID productId, int quantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
 
         Inventory inventory = product.getInventory();
         if (inventory == null) {
-            throw new RuntimeException("Inventory not found for product: " + productId);
+            throw new ResourceNotFoundException("Inventory", "productId", productId);
         }
 
         int currentStock = inventory.getStock();
         if (currentStock < quantity) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     String.format("Insufficient stock. Available: %d, Requested: %d", currentStock, quantity));
         }
 
@@ -51,11 +53,11 @@ public class InventoryService {
     @Transactional
     public Inventory updateInventory(UUID productId, Inventory inventoryUpdate) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
 
         Inventory inventory = product.getInventory();
         if (inventory == null) {
-            throw new RuntimeException("Inventory not found for product: " + productId);
+            throw new ResourceNotFoundException("Inventory", "productId", productId);
         }
 
         inventory.setStock(inventoryUpdate.getStock());

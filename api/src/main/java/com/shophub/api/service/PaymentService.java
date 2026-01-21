@@ -1,5 +1,6 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.Order;
 import com.shophub.api.model.Payment;
 import com.shophub.api.model.enums.PaymentMethod;
@@ -27,7 +28,7 @@ public class PaymentService {
     @Transactional
     public Payment mockPayment(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
         // Check if payment already exists
         if (order.getPayment() != null) {
@@ -50,7 +51,7 @@ public class PaymentService {
     public Payment initiatePayment(UUID orderId) {
         // TODO: Integrate with actual payment gateway
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
         // Check if payment already exists
         if (order.getPayment() != null) {

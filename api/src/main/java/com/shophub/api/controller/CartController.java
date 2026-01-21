@@ -1,13 +1,14 @@
 package com.shophub.api.controller;
 
+import com.shophub.api.dto.AddCartItemRequest;
+import com.shophub.api.dto.UpdateCartItemRequest;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.Cart;
-import com.shophub.api.model.CartItem;
 import com.shophub.api.service.CartService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,50 +23,33 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<Cart> getCart(@PathVariable UUID userId) {
-        return cartService.getCartByUserId(userId)
-                .map(cart -> ResponseEntity.ok(cart))
-                .orElse(ResponseEntity.notFound().build());
+        Cart cart = cartService.getCartByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
+        return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/items")
     public ResponseEntity<Cart> addItemToCart(
             @PathVariable UUID userId,
-            @RequestBody Map<String, Object> request) {
-        try {
-            UUID productId = UUID.fromString(request.get("productId").toString());
-            int quantity = Integer.parseInt(request.get("quantity").toString());
-
-            Cart cart = cartService.addItemToCart(userId, productId, quantity);
-            return ResponseEntity.ok(cart);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+            @Valid @RequestBody AddCartItemRequest request) {
+        Cart cart = cartService.addItemToCart(userId, request.getProductId(), request.getQuantity());
+        return ResponseEntity.ok(cart);
     }
 
     @PutMapping("/items/{itemId}")
     public ResponseEntity<Cart> updateCartItem(
             @PathVariable UUID userId,
             @PathVariable UUID itemId,
-            @RequestBody Map<String, Object> request) {
-        try {
-            int quantity = Integer.parseInt(request.get("quantity").toString());
-
-            Cart cart = cartService.updateCartItemQuantity(userId, itemId, quantity);
-            return ResponseEntity.ok(cart);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+            @Valid @RequestBody UpdateCartItemRequest request) {
+        Cart cart = cartService.updateCartItemQuantity(userId, itemId, request.getQuantity());
+        return ResponseEntity.ok(cart);
     }
 
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<Void> removeItemFromCart(
             @PathVariable UUID userId,
             @PathVariable UUID itemId) {
-        try {
-            cartService.removeItemFromCart(itemId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        cartService.removeItemFromCart(itemId);
+        return ResponseEntity.noContent().build();
     }
 }

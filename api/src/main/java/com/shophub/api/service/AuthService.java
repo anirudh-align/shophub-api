@@ -1,5 +1,7 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.BadRequestException;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.User;
 import com.shophub.api.model.enums.UserRole;
 import com.shophub.api.repository.UserRepository;
@@ -22,7 +24,7 @@ public class AuthService {
     public User register(String name, String email, String password) {
         // Check if user already exists
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("User with email already exists: " + email);
+            throw new BadRequestException("User with email already exists: " + email);
         }
 
         // TODO: Hash password before saving
@@ -38,11 +40,11 @@ public class AuthService {
     public User login(String email, String password) {
         // TODO: Implement proper authentication with JWT
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
         // TODO: Verify password hash
         if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("Invalid email or password");
+            throw new BadRequestException("Invalid email or password");
         }
 
         return user;

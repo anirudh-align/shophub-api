@@ -1,5 +1,7 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.BadRequestException;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.*;
 import com.shophub.api.model.enums.OrderStatus;
 import com.shophub.api.model.enums.PaymentMethod;
@@ -43,15 +45,15 @@ public class CheckoutService {
     public Order checkout(UUID userId, String shippingAddress, String contactDetails, PaymentMethod paymentMethod) {
         // Get user's cart
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
 
         if (cart.getCartItems().isEmpty()) {
-            throw new RuntimeException("Cannot checkout: Cart is empty");
+            throw new BadRequestException("Cannot checkout: Cart is empty");
         }
 
         // Get user
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         // Create order
         Order order = new Order();

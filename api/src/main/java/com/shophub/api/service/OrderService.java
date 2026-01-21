@@ -1,5 +1,7 @@
 package com.shophub.api.service;
 
+import com.shophub.api.exception.BadRequestException;
+import com.shophub.api.exception.ResourceNotFoundException;
 import com.shophub.api.model.*;
 import com.shophub.api.model.enums.OrderStatus;
 import com.shophub.api.repository.*;
@@ -39,15 +41,15 @@ public class OrderService {
     public Order placeOrder(UUID userId) {
         // Get user's cart
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
 
         if (cart.getCartItems().isEmpty()) {
-            throw new RuntimeException("Cannot place order: Cart is empty");
+            throw new BadRequestException("Cannot place order: Cart is empty");
         }
 
         // Get user
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         // Create order
         Order order = new Order();
@@ -90,7 +92,7 @@ public class OrderService {
 
     public OrderStatus getOrderStatus(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         return order.getStatus();
     }
 }
