@@ -24,7 +24,12 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 
+jwt:
+  secret: your-secret-key-change-this-in-production-minimum-256-bits-for-hs256-algorithm
+  expiration: 86400000 # 24 hours in milliseconds
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.shophub.api: DEBUG
